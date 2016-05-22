@@ -8,6 +8,7 @@ using WebCmd.Services;
 using WebCmd.Models.CommandPrompt;
 using System.Security.Claims;
 using System.Net;
+using Microsoft.Extensions.Logging;
 
 namespace WebCmd.Controllers
 {
@@ -15,10 +16,12 @@ namespace WebCmd.Controllers
     public class CommandPromptController : Controller
     {
         private readonly CommandPromptService _commandPromptService;
+        private readonly ILogger<CommandPromptController> _logger;
 
-        public CommandPromptController(CommandPromptService commandPromptService)
+        public CommandPromptController(CommandPromptService commandPromptService, ILoggerFactory loggerFactory)
         {
             _commandPromptService = commandPromptService;
+            _logger = loggerFactory.CreateLogger<CommandPromptController>();
         }
 
         public IActionResult Index()
@@ -33,16 +36,19 @@ namespace WebCmd.Controllers
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var result = _commandPromptService.RunCommand(userId, commandInfoVM);
+                _logger.LogInformation($"{DateTime.Now} : Command {commandInfoVM.Command} strted with path {commandInfoVM.Path}");
                 return Json(result);
             }
             catch (InvalidOperationException e)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                _logger.LogInformation($"{DateTime.Now} : Expected error: {e.Message}");
                 return Json(e.Message);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                _logger.LogCritical($"{DateTime.Now} : Critical error: {ex.Message} {ex.StackTrace}");
                 return Json("Invalid operation on server");
             }
         }
@@ -54,16 +60,19 @@ namespace WebCmd.Controllers
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var result = _commandPromptService.CancelCommand(userId, commandInfoVM);
+                _logger.LogInformation($"{DateTime.Now} : Command {commandInfoVM.Command} with path {commandInfoVM.Path} cancelled.");
                 return Json(result);
             }
             catch (InvalidOperationException e)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                _logger.LogInformation($"{DateTime.Now} : Expected error: {e.Message}");
                 return Json(e.Message);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                _logger.LogCritical($"{DateTime.Now} : Critical error: {ex.Message} {ex.StackTrace}");
                 return Json("Invalid operation on server");
             }
         }

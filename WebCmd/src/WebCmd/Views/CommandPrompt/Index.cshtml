@@ -66,6 +66,14 @@
             };
         };
 
+        var setResult = function (response) {
+            result.val(response);
+        };
+
+        var setError = function (response) {
+            error.val(response.responseJSON);
+        };
+
         cleanResult.click(function () {
             result.val('');
         });
@@ -76,20 +84,12 @@
 
         start.click(function () {
             $.ajax(generateData('/CommandPrompt/RunCommand'))
-                .then(function (response) {
-                    result.val(response);
-                }, function (response) {
-                    error.val(response.responseJSON);
-                });
+                .then(setResult, setError);
         });
 
         stop.click(function () {
             $.ajax(generateData('/CommandPrompt/CancelCommand'))
-                 .then(function (response) {
-                     result.val(response);
-                 }, function (response) {
-                     error.val(response.responseJSON);
-                 });
+                 .then(setResult, setError);
         });
     </script>
 }
