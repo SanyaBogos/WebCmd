@@ -1,0 +1,95 @@
+﻿@model WebCmd.Models.CommandPrompt.CommandInfoVM
+
+<div class="form-horizontal">
+    <h4 class="text-center">Run command...</h4>
+    <hr />
+
+    <div class="form-group">
+        <label asp-for="Command" class="col-md-2 control-label"></label>
+        <div class="col-md-4">
+            <input id="command" class="form-control" />
+        </div>
+
+
+    </div>
+    <div class="form-group">
+        <label asp-for="Path" class="col-md-2 control-label"></label>
+        <div class="col-md-4">
+            <input id="path" class="form-control" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-3 text-center">
+            <button class="btn btn-default" id="start">Start</button>
+            <button class="btn btn-danger" id="close">Close</button>
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-default" id="cleanResultBtn">Clean results</button>
+            <button class="btn btn-default" id="cleanErrorsBtn">Clean errors</button>
+        </div>
+    </div>
+
+
+
+</div>
+<div class="col-md-12">
+    <div class="text-center">
+        <textarea id="result" class="form-control" rows="17" style="max-width:100%; color:lawngreen;background-color:black"></textarea>
+    </div>
+
+    <div class="text-center">
+        <textarea id="error" class="form-control" rows="4" style="max-width:100%; color:red;background-color:black"></textarea>
+    </div>
+</div>
+
+
+
+@section scripts{
+    <script>
+        var start = $('#start'),
+            stop = $('#close'),
+            cleanResult = $('#cleanResultBtn'),
+            cleanError = $('#cleanErrorsBtn'),
+            result = $('#result'),
+            error = $('#error'),
+            command = $('#command'),
+            path = $('#path');
+
+        var generateData = function (url) {
+            return {
+                type: "POST",
+                url: url,
+                data: JSON.stringify({ Command: command.val(), Path: path.val() }),
+                contentType: "application/json",
+                dataType: "json"
+            };
+        };
+
+        cleanResult.click(function () {
+            result.val('');
+        });
+
+        cleanError.click(function () {
+            error.val('');
+        });
+
+        start.click(function () {
+            $.ajax(generateData('/CommandPrompt/RunCommand'))
+                .then(function (response) {
+                    result.val(response);
+                }, function (response) {
+                    error.val(response.responseJSON);
+                });
+        });
+
+        stop.click(function () {
+            $.ajax(generateData('/CommandPrompt/CancelCommand'))
+                 .then(function (response) {
+                     result.val(response);
+                 }, function (response) {
+                     error.val(response.responseJSON);
+                 });
+        });
+    </script>
+}
